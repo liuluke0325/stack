@@ -34,6 +34,8 @@
     padding:8px 17px;font-size:16px;color:var(--dim);cursor:pointer;transition:.15s;font-family:inherit}
   .pill:hover{border-color:var(--red);color:var(--text)}
   .pill.active{background:var(--red);border-color:var(--red);color:#fff}
+  .pill-del{margin-left:4px;opacity:.6;font-weight:700}
+  .pill-del:hover{opacity:1;color:var(--red)}
   .inputs{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:24px}
   .inputs label{display:flex;flex-direction:column;gap:8px;flex:1;min-width:170px}
   .inputs .lbl{font-size:15px;color:var(--dim);letter-spacing:1px}
@@ -87,30 +89,49 @@
     <button class="tab" data-mode="sim">模擬真實走勢(卜瓦松)</button>
   </div>
 
-  <div class="preset-row">
-    <span class="cap">台股(僅供示意):</span>
-    <button class="pill active" data-rate="8" data-vol="20" data-ccy="TWD">自訂</button>
-    <button class="pill" data-rate="24" data-vol="28" data-ccy="TWD">台積電 2330 ‡</button>
-    <button class="pill" data-rate="30" data-vol="60" data-ccy="TWD">欣興 3037 †</button>
-    <button class="pill" data-rate="9.8" data-vol="18.8" data-ccy="TWD">0050 ✓</button>
+  <div id="allPresets">
+    <div class="preset-row">
+      <span class="cap">台股(僅供示意):</span>
+      <button class="pill active" data-rate="8" data-vol="20" data-ccy="TWD">自訂</button>
+      <button class="pill" data-rate="24" data-vol="28" data-ccy="TWD">台積電 2330 ‡</button>
+      <button class="pill" data-rate="30" data-vol="60" data-ccy="TWD">欣興 3037 †</button>
+      <button class="pill" data-rate="9.8" data-vol="18.8" data-ccy="TWD">0050 ✓</button>
+    </div>
+    <div class="preset-row">
+      <span class="cap">美股(僅供示意):</span>
+      <button class="pill" data-rate="10" data-vol="17" data-ccy="USD">標普500 ✓</button>
+      <button class="pill" data-rate="19" data-vol="30" data-ccy="USD">蘋果 AAPL ‡</button>
+      <button class="pill" data-rate="19" data-vol="27" data-ccy="USD">Google ‡</button>
+      <button class="pill" data-rate="68" data-vol="35" data-ccy="USD">輝達 NVDA ⚠</button>
+    </div>
+    <div class="preset-row">
+      <span class="cap">港股/中概股(僅供示意):</span>
+      <button class="pill" data-rate="4" data-vol="46" data-ccy="HKD">小米 1810 †</button>
+      <button class="pill" data-rate="1" data-vol="41" data-ccy="HKD">阿里巴巴 †</button>
+    </div>
+    <div class="preset-row">
+      <span class="cap">陸股/A股(僅供示意):</span>
+      <button class="pill" data-rate="9.7" data-vol="33" data-ccy="CNY">海康威視 †</button>
+      <button class="pill" data-rate="15.8" data-vol="52.5" data-ccy="CNY">贛鋒鋰業 002460 †</button>
+      <button class="pill" data-rate="12.6" data-vol="58" data-ccy="CNY">華友鈷業 603799 †</button>
+    </div>
+    <div class="preset-row" id="customRow" style="display:none">
+      <span class="cap">我的自訂標的:</span>
+    </div>
   </div>
-  <div class="preset-row">
-    <span class="cap">美股(僅供示意):</span>
-    <button class="pill" data-rate="10" data-vol="17" data-ccy="USD">標普500 ✓</button>
-    <button class="pill" data-rate="19" data-vol="30" data-ccy="USD">蘋果 AAPL ‡</button>
-    <button class="pill" data-rate="19" data-vol="27" data-ccy="USD">Google ‡</button>
-    <button class="pill" data-rate="68" data-vol="35" data-ccy="USD">輝達 NVDA ⚠</button>
-  </div>
-  <div class="preset-row">
-    <span class="cap">港股/中概股(僅供示意):</span>
-    <button class="pill" data-rate="4" data-vol="46" data-ccy="HKD">小米 1810 †</button>
-    <button class="pill" data-rate="1" data-vol="41" data-ccy="HKD">阿里巴巴 †</button>
-  </div>
-  <div class="preset-row">
-    <span class="cap">陸股/A股(僅供示意):</span>
-    <button class="pill" data-rate="9.7" data-vol="33" data-ccy="CNY">海康威視 †</button>
-    <button class="pill" data-rate="15.8" data-vol="52.5" data-ccy="CNY">贛鋒鋰業 002460 †</button>
-    <button class="pill" data-rate="12.6" data-vol="58" data-ccy="CNY">華友鈷業 603799 †</button>
+
+  <div class="lookup">
+    <span class="cap">新增自訂標的(存在這台瀏覽器裡):</span>
+    <input id="customName" type="text" placeholder="名稱,如 聯發科" style="width:110px">
+    <input id="customRate" type="number" placeholder="年化%" style="width:74px" step="0.5">
+    <input id="customVol" type="number" placeholder="波動%" style="width:74px" step="1">
+    <select id="customCcy">
+      <option value="TWD">台幣</option>
+      <option value="USD">美元</option>
+      <option value="HKD">港幣</option>
+      <option value="CNY">人民幣</option>
+    </select>
+    <button class="lookup-btn" id="customAddBtn" disabled>＋ 新增標的</button>
   </div>
 
   <div class="lookup">
@@ -401,19 +422,67 @@ document.querySelectorAll(".tab").forEach(btn=>{
 });
 
 // 熱門標的:點選帶入該標的的年化報酬率/波動度示意值(台股/美股各自的幣別也一併切換)
-document.querySelectorAll(".pill").forEach(btn=>{
-  btn.addEventListener("click", ()=>{
-    document.querySelectorAll(".pill").forEach(b=>b.classList.remove("active"));
-    btn.classList.add("active");
-    $("rate").value = btn.dataset.rate;
-    $("vol").value = btn.dataset.vol;
-    currency = btn.dataset.ccy || 'TWD';
-    $("principalSuffix").textContent = CCY_UNIT_WAN[currency] ? "元" : "$";
-    $("monthlySuffix").textContent   = CCY_UNIT_WAN[currency] ? "元/月" : "$/月";
-    compute();
-  });
+// 用事件代理綁在容器上,這樣之後動態新增的「自訂標的」按鈕也會自動生效,不用重新綁定
+function selectPill(btn){
+  document.querySelectorAll(".pill").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  $("rate").value = btn.dataset.rate;
+  $("vol").value = btn.dataset.vol;
+  currency = btn.dataset.ccy || 'TWD';
+  $("principalSuffix").textContent = CCY_UNIT_WAN[currency] ? "元" : "$";
+  $("monthlySuffix").textContent   = CCY_UNIT_WAN[currency] ? "元/月" : "$/月";
+  compute();
+}
+$("allPresets").addEventListener("click", e => {
+  const del = e.target.closest(".pill-del");
+  if(del){
+    e.stopPropagation();
+    const idx = +del.dataset.idx;
+    const list = loadCustomPresets();
+    list.splice(idx, 1);
+    saveCustomPresets(list);
+    renderCustomPresets();
+    return;
+  }
+  const btn = e.target.closest(".pill");
+  if(btn) selectPill(btn);
 });
 function clearPillActive(){ document.querySelectorAll(".pill").forEach(b=>b.classList.remove("active")); }
+
+// 自訂標的:存在瀏覽器 localStorage,重新整理、下次再開都還在
+const CUSTOM_KEY = "stockSim.customPresets";
+function loadCustomPresets(){
+  try { return JSON.parse(localStorage.getItem(CUSTOM_KEY)) || []; } catch(e){ return []; }
+}
+function saveCustomPresets(list){ localStorage.setItem(CUSTOM_KEY, JSON.stringify(list)); }
+function renderCustomPresets(){
+  const list = loadCustomPresets();
+  const row = $("customRow");
+  row.innerHTML = `<span class="cap">我的自訂標的:</span>` + list.map((p, i) =>
+    `<button class="pill" data-rate="${p.rate}" data-vol="${p.vol}" data-ccy="${p.ccy}">${p.name}<span class="pill-del" data-idx="${i}"> ×</span></button>`
+  ).join("");
+  row.style.display = list.length ? "" : "none";
+}
+renderCustomPresets();
+
+function updateCustomAddBtn(){
+  const ok = $("customName").value.trim() !== "" &&
+    $("customRate").value !== "" && !isNaN(+$("customRate").value) &&
+    $("customVol").value !== "" && !isNaN(+$("customVol").value);
+  $("customAddBtn").disabled = !ok;
+}
+["customName","customRate","customVol"].forEach(id => $(id).addEventListener("input", updateCustomAddBtn));
+$("customAddBtn").addEventListener("click", () => {
+  const name = $("customName").value.trim();
+  const rate = +$("customRate").value, vol = +$("customVol").value;
+  if(!name || isNaN(rate) || isNaN(vol)) return;
+  const list = loadCustomPresets();
+  list.push({ name, rate, vol, ccy: $("customCcy").value });
+  saveCustomPresets(list);
+  renderCustomPresets();
+  $("customName").value = ""; $("customRate").value = ""; $("customVol").value = "";
+  updateCustomAddBtn();
+});
 
 // 自行查詢其他股票的歷史報酬率/波動度(開新分頁,查到後手動填回上方欄位)
 // 台股代號純數字風格跟港股/陸股代號重疊,無法自動判斷,改由使用者選市場
