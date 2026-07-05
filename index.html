@@ -15,8 +15,16 @@
   .wrap{max-width:860px;margin:0 auto}
   .eyebrow{font-size:12px;color:var(--red);letter-spacing:3px;margin-bottom:4px}
   h1{margin:0 0 20px;font-size:22px;font-weight:600}
-  .presets{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+  .presets{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
   .presets .cap{font-size:12px;color:var(--dim);letter-spacing:1px;margin-right:2px}
+  .lookup{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+  .lookup .cap{font-size:12px;color:var(--dim);letter-spacing:1px;margin-right:2px}
+  .lookup input{background:var(--panel);border:1px solid var(--line);border-radius:8px;
+    color:var(--text);padding:7px 10px;font-size:13px;width:100px;font-family:inherit;outline:none}
+  .lookup input:focus{border-color:var(--red)}
+  .lookup-btn{background:transparent;border:1px solid var(--line);border-radius:8px;
+    color:var(--text);font-size:13px;padding:7px 12px;cursor:pointer;white-space:nowrap;font-family:inherit}
+  .lookup-btn:hover{border-color:var(--red);color:var(--red)}
   .pill{background:var(--panel);border:1px solid var(--line);border-radius:20px;
     padding:6px 14px;font-size:13px;color:var(--dim);cursor:pointer;transition:.15s;font-family:inherit}
   .pill:hover{border-color:var(--red);color:var(--text)}
@@ -75,6 +83,12 @@
     <button class="pill" data-rate="24" data-vol="28">台積電 2330 ‡</button>
     <button class="pill" data-rate="30" data-vol="60">欣興 3037 †</button>
     <button class="pill" data-rate="9.8" data-vol="18.8">0050 ✓</button>
+  </div>
+
+  <div class="lookup">
+    <span class="cap">想查其他股票?輸入代號查歷史報酬/波動度:</span>
+    <input id="lookupCode" type="text" placeholder="例如 2454" inputmode="numeric">
+    <button class="lookup-btn" id="lookupBtn">查看數據 ↗</button>
   </div>
 
   <div class="inputs">
@@ -136,6 +150,7 @@
   ・「0050 ✓」預設採用成立 20 年以來的長期含息報酬率(9.8%)與標準差(18.8%),資料至 2023 年底(<a href="https://stock-invest.tw/2023/12/19/0050%E6%88%90%E7%AB%8B20%E5%B9%B4%EF%BC%8C%E5%B9%B4%E5%9D%87%E5%A0%B1%E9%85%AC%E7%8E%879-8%EF%BC%8C%E9%80%99%E5%80%8B%E5%A0%B1%E9%85%AC%E7%8E%87%E6%98%AF%E6%80%8E%E6%A8%A3%E8%A8%88%E7%AE%97%E7%9A%84/" target="_blank" rel="noopener">資料來源</a>)——這是刻意的保守選擇:近 5-10 年 0050 實際報酬率因熱潮飆到約 22-28%,但那樣的漲幅難以長期持續,不宜當作未來預期。<br>
   ・「台積電 2330 ‡」採近 10 年歷史值(年化約 24%、波動度約 28%),同樣明顯受惠近期熱潮,不同來源估算範圍達 24-34%,僅供功能示意,並非未來預測。<br>
   ・「欣興 3037 †」為低信心度的粗略估算值(年化約 30%、波動度約 60%),原始數據內部矛盾較多,可信度最低,請審慎參考。<br>
+  想查其他個股,可用上方「查看數據」按鈕,連到 <a href="https://info.ifa.ai/" target="_blank" rel="noopener">ifa.ai</a>(領有金管會核准投顧執照 115金管投顧新字第008號)查詢該股各期間標準差與歷史報酬,查到後自行填入「年化報酬率/年化波動度」欄位試算。<br>
   以上皆為歷史數據,不代表未來表現,不構成投資建議。</p>
 </div>
 <div id="tip"></div>
@@ -359,6 +374,15 @@ document.querySelectorAll(".pill").forEach(btn=>{
   });
 });
 function clearPillActive(){ document.querySelectorAll(".pill").forEach(b=>b.classList.remove("active")); }
+
+// 自行查詢其他股票的歷史報酬率/波動度(開新分頁,查到後手動填回上方欄位)
+function openLookup(){
+  const code = $("lookupCode").value.trim();
+  if(!code) return;
+  window.open(`https://info.ifa.ai/tw-stock/${encodeURIComponent(code)}`, "_blank", "noopener");
+}
+$("lookupBtn").addEventListener("click", openLookup);
+$("lookupCode").addEventListener("keydown", e => { if(e.key === "Enter") openLookup(); });
 $("rate").addEventListener("input", clearPillActive);
 $("vol").addEventListener("input", clearPillActive);
 
