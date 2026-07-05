@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>股票複利試算</title>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <style>
   :root{
     --bg:#101418; --panel:#171C22; --line:#2A323C;
@@ -159,6 +160,9 @@
     <label id="volField" style="display:none"><span class="lbl">年化波動度</span>
       <div class="field"><input id="vol" type="number" value="20" step="1" min="0"><span class="suffix">%</span></div>
     </label>
+    <label><span class="lbl">目前年齡(選填,匯出用)</span>
+      <div class="field"><input id="age" type="number" placeholder="例如 24" step="1" min="0" max="120"><span class="suffix">歲</span></div>
+    </label>
   </div>
 
   <div class="stats">
@@ -194,6 +198,11 @@
       </div>
       <button class="reroll-btn" id="reroll" style="display:none">🔀 重新模擬一次</button>
     </div>
+  </div>
+
+  <div class="lookup">
+    <button class="lookup-btn" id="exportBtn">📊 匯出 Excel</button>
+    <span class="cap">把目前設定與試算結果存成 .xlsx,可用 Excel 打開繼續編輯。</span>
   </div>
 
   <p class="note">試算採每月定期定額、月底投入,報酬按月複利。上方分頁可切換兩種視角:「單純複利(理論)」是教科書式的平滑成長曲線;「模擬真實走勢(卜瓦松)」則在年化報酬率之上加入隨機漲跌與不定期的市場大幅波動,更貼近現實中上上下下的走勢,每次按「重新模擬」結果都會不同。這正說明短期漲跌難以預測——但長期持續投入,才是存股真正的重點。<br>
@@ -509,6 +518,46 @@ $("vol").addEventListener("input", clearPillActive);
 ["principal","monthly","rate","vol","months"].forEach(id => $(id).addEventListener("input", compute));
 $("reroll").addEventListener("click", compute);
 window.addEventListener("resize", drawChart);
+
+// 匯出 Excel:仿照試算表慣用的「指標為列、時間點為欄」寬表格式,方便直接在 Excel 裡繼續加工
+function exportExcel(){
+  const age = $("age").value.trim() !== "" ? +$("age").value : null;
+  const lastM = data.length - 1;
+  const checkpoints = [];
+  for(let m = 0; m <= lastM; m += 12) checkpoints.push(m);
+  if(checkpoints[checkpoints.length-1] !== lastM) checkpoints.push(lastM);
+
+  const rows = [];
+  rows.push(["股票複利試算 — 匯出資料"]);
+  rows.push(["匯出時間", new Date().toLocaleString("zh-TW")]);
+  rows.push(["期初本金", +$("principal").value, CCY_SYMBOL[currency]]);
+  rows.push(["每月投入", +$("monthly").value, CCY_SYMBOL[currency] + "/月"]);
+  rows.push(["年化報酬率(%)", +$("rate").value]);
+  rows.push(["年化波動度(%,模擬分頁用)", +$("vol").value]);
+  if(age !== null) rows.push(["目前年齡", age]);
+  rows.push([]);
+
+  const headRow = [age !== null ? "年齡" : "月數"];
+  const investedRow = ["累計投入"];
+  const theoRow = ["理論總值(單純複利)"];
+  const simRow = ["模擬總值(卜瓦松模擬,本次結果)"];
+  const gainRow = ["模擬損益"];
+  checkpoints.forEach(m => {
+    headRow.push(age !== null ? +(age + m/12).toFixed(1) : m);
+    investedRow.push(Math.round(data[m].invested));
+    theoRow.push(Math.round(theoData[m].value));
+    simRow.push(Math.round(data[m].value));
+    gainRow.push(Math.round(data[m].value - data[m].invested));
+  });
+  rows.push(headRow, investedRow, theoRow, simRow, gainRow);
+
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "試算結果");
+  XLSX.writeFile(wb, "股票複利試算.xlsx");
+}
+$("exportBtn").addEventListener("click", exportExcel);
+
 compute();
 </script>
 </body>
